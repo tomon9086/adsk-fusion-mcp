@@ -1,0 +1,13 @@
+{
+	"autodeskProduct":	"Fusion",
+	"type":	"addin",
+	"id":	"_",
+	"author":	"tomon9086",
+	"description":	{
+		"":	"Support Free AI Generative Design with MCP"
+	},
+	"version":	"0.1.0",
+	"runOnStartup":	true,
+	"supportedOS":	"windows|mac|linux",
+	"editEnabled":	true
+}
