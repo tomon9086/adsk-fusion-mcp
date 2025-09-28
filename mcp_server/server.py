@@ -9,8 +9,27 @@ mcp = FastMCP(
 )
 
 
+class FusionRPCClient:
+    def __init__(self, host="localhost", port=9875):
+        self.host = host
+        self.port = port
+        self.server = xmlrpc.client.ServerProxy(
+            f"http://{host}:{port}", allow_none=True
+        )
+
+    def ping(self) -> TextContent:
+        result = self.server.ping()
+        return TextContent(type="text", text="success" if result else "failed")
+
+    def create_cylinder(
+        self, x: float, y: float, z: float, radius: float, height: float
+    ) -> TextContent:
+        result = self.server.create_cylinder(x, y, z, radius, height)
+        return TextContent(type="text", text="success" if result else "failed")
+
+
 @mcp.tool()
-def ping(ctx: Context, host: str = "localhost", port: int = 9875) -> list[TextContent]:
+def ping(ctx: Context) -> list[TextContent]:
     """Send a ping to Fusion RPC server.
 
     Args:
@@ -20,37 +39,34 @@ def ping(ctx: Context, host: str = "localhost", port: int = 9875) -> list[TextCo
     Returns:
         Ping result message
     """
-    try:
-        # Create RPC client
-        server = xmlrpc.client.ServerProxy(f"http://{host}:{port}", allow_none=True)
+    client = FusionRPCClient()
+    result = client.ping()
+    return [result]
 
-        # Call ping endpoint
-        result = server.ping()
 
-        if result:
-            return [
-                TextContent(
-                    type="text",
-                    text=f"✅ Successfully connected to Fusion RPC server ({host}:{port}).",
-                )
-            ]
-        else:
-            return [
-                TextContent(
-                    type="text",
-                    text=f"❌ Invalid response from Fusion RPC server ({host}:{port}).",
-                )
-            ]
+@mcp.tool()
+def create_cylinder(
+    ctx: Context,
+    x: float,
+    y: float,
+    z: float,
+    radius: float,
+    height: float,
+) -> list[TextContent]:
+    """Create a cylinder in Fusion.
 
-    except ConnectionError:
-        return [
-            TextContent(
-                type="text",
-                text=f"❌ Failed to connect to Fusion RPC server ({host}:{port}). Please check if the server is running.",
-            )
-        ]
-    except Exception as e:
-        return [TextContent(type="text", text=f"❌ An error occurred: {str(e)}")]
+    Args:
+        x: X coordinate of the cylinder center
+        y: Y coordinate of the cylinder center
+        z: Z coordinate of the cylinder center
+        radius: Radius of the cylinder
+        height: Height of the cylinder
+    Returns:
+        Result message
+    """
+    client = FusionRPCClient()
+    result = client.create_cylinder(x, y, z, radius, height)
+    return [result]
 
 
 def main():
