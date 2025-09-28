@@ -1,0 +1,5 @@
+# Fusion Add-in
+adsk>=2.0.0
+
+# MCP Server
+mcp>=1.15.0
