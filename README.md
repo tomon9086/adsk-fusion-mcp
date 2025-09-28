@@ -22,3 +22,9 @@ Claude Desktop: `claude_desktop_config.json`
   }
 }
 ```
+
+## Debugging
+
+```shell
+npx @modelcontextprotocol/inspector uvx --from ~/path/to/adsk-fusion-mcp --no-cache fusion-mcp
+```
