@@ -1,5 +1,15 @@
+import os
+import sys
 import threading
 from xmlrpc.server import SimpleXMLRPCServer
+
+import adsk.core
+
+lib_rpc_path = os.path.dirname(os.path.abspath(__file__))
+lib_path = os.path.join(lib_rpc_path, "..")
+sys.path.insert(0, lib_path)
+
+from lib.commands.cylinder import create_cylinder
 
 
 class FusionRPCMethods:
@@ -7,16 +17,33 @@ class FusionRPCMethods:
         """ping
         Check if the server is alive
         """
+
         return True
+
+    def create_cylinder(self, x, y, z, radius, height):
+        """Create a cylinder"""
+        try:
+            app = adsk.core.Application.get()
+            point = adsk.core.Point3D.create(x, y, z)
+            success = create_cylinder(app, point, radius, height)
+            return success
+        except Exception as e:
+            print(f"Error in create_cylinder RPC method: {str(e)}")
+            return False
 
 
 class FusionRPCServer:
     def __init__(self, host="localhost", port=9875):
-        self.host = host
-        self.port = port
-        self.server = None
-        self.server_thread = None
-        self.is_running = False
+        try:
+            self.host = host
+            self.port = port
+            self.server = None
+            self.server_thread = None
+            self.is_running = False
+
+        except Exception as e:
+            print(f"Error in FusionRPCServer.__init__: {str(e)}")
+            raise
 
     def start(self):
         """Start the server"""
@@ -30,6 +57,10 @@ class FusionRPCServer:
             # Register methods
             rpc_methods = FusionRPCMethods()
             self.server.register_function(rpc_methods.ping, "ping")
+
+            self.server.register_function(
+                rpc_methods.create_cylinder, "create_cylinder"
+            )
 
             # Start the server in a separate thread
             self.server_thread = threading.Thread(target=self._serve_forever)

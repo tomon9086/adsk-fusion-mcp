@@ -1,19 +1,29 @@
 import os
 import sys
 import traceback
+from datetime import datetime
 
 import adsk.core
 
 addin_path = os.path.dirname(os.path.abspath(__file__))
-lib_path = os.path.join(addin_path, "lib")
-if lib_path not in sys.path:
-    sys.path.append(lib_path)
+sys.path.insert(0, addin_path)
+
+# Force module reload by removing from sys.modules
+modules_to_reload = [key for key in sys.modules.keys() if key.startswith("lib.")]
+for module in modules_to_reload:
+    if module in sys.modules:
+        del sys.modules[module]
 
 from lib.rpc.server import FusionRPCServer
 
 app = None
 ui = None
 rpc_server = None
+
+
+def flush_console(app: adsk.core.Application):
+    """Flush Text Commands Window (for debugging)"""
+    app.log("\n\n\n\n=== {} ===".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
 
 def run(context):
@@ -24,6 +34,8 @@ def run(context):
     try:
         app = adsk.core.Application.get()
         ui = app.userInterface
+
+        flush_console(app)
 
         rpc_server = FusionRPCServer()
         rpc_server.start()
