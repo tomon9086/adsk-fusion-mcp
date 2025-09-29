@@ -5,7 +5,10 @@ from .sketch import create_sketch
 
 
 def create_sketch_circle(
-    component: adsk.fusion.Component, coords: adsk.core.Point3D, radius: float
+    component: adsk.fusion.Component,
+    plane: adsk.core.Plane,
+    coords: adsk.core.Point3D,
+    radius: float,
 ) -> adsk.fusion.Sketch:
     """
     Create a circular sketch on the XY plane
@@ -18,12 +21,11 @@ def create_sketch_circle(
     Returns:
         adsk.fusion.Sketch: The created sketch object
     """
-    xy_plane = component.xYConstructionPlane
     sketches = component.sketches
-    sketch_name = "cylinder_base_" + str(len(sketches))
+    sketch_name = "sketch_circle_" + str(len(sketches))
 
     # Create sketch using base function
-    sketch = create_sketch(component, xy_plane, sketch_name)
+    sketch = create_sketch(component, plane, sketch_name)
     if sketch is None:
         return None
 

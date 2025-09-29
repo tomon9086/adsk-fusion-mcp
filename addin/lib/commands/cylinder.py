@@ -26,7 +26,9 @@ def create_cylinder(
 
     try:
         # Create circular sketch
-        sketch = create_sketch_circle(component, coords, radius)
+        sketch = create_sketch_circle(
+            component, component.xYConstructionPlane, coords, radius
+        )
         # Extrude the sketch to create cylinder
         return extrude_profile(component, sketch, height)
 
