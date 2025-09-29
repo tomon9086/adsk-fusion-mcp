@@ -5,33 +5,99 @@ from xmlrpc.server import SimpleXMLRPCServer
 
 import adsk.core
 
+from .types import RpcResponse
+
 lib_rpc_path = os.path.dirname(os.path.abspath(__file__))
-lib_path = os.path.join(lib_rpc_path, "..")
+root_path = os.path.join(lib_rpc_path, "../../..")
+lib_path = os.path.join(root_path, "addin/lib")
 sys.path.insert(0, lib_path)
 
-from lib.commands.cylinder import create_cylinder
+from lib.commands.extrude_profile import extrude_profile
+from lib.commands.sketch import create_sketch
+from lib.commands.sketch_circle import create_sketch_circle
 
 
 class FusionRPCMethods:
-    def ping(self):
+    def ping(self) -> dict:
         """ping
         Check if the server is alive
         """
 
-        return True
+        return RpcResponse(success=True, message="Pong").to_dict()
 
-    def create_cylinder(self, x, y, z, radius, height):
-        """Create a cylinder"""
+    def extrude_profile(self, sketch_name: str, distance: float) -> dict:
+        """Extrude a profile"""
         try:
             app = adsk.core.Application.get()
             design = app.activeProduct
             root_component = design.rootComponent
-            point = adsk.core.Point3D.create(x, y, z)
-            success = create_cylinder(root_component, point, radius, height)
-            return success
+
+            # Find the sketch by name
+            sketches = root_component.sketches
+            target_sketch = next(
+                (sketch for sketch in sketches if sketch.name == sketch_name), None
+            )
+
+            if target_sketch is None:
+                raise ValueError(f"Sketch '{sketch_name}' not found")
+
+            # Extrude the profile
+            extrude = extrude_profile(
+                component=root_component, sketch=target_sketch, distance=distance
+            )
+            if extrude is None:
+                raise RuntimeError("Failed to extrude the profile")
+
+            return RpcResponse(
+                success=True, message="Profile extruded successfully"
+            ).to_dict()
+
         except Exception as e:
-            print(f"Error in create_cylinder RPC method: {str(e)}")
-            return False
+            app.log(f"Error in extrude_profile RPC method: {str(e)}")
+            return RpcResponse(success=False, message=str(e)).to_dict()
+
+    def create_sketch_circle(
+        self, plane: str, coords: list[float], radius: float
+    ) -> dict:
+        """Create a new sketch circle"""
+        try:
+            app = adsk.core.Application.get()
+            design = app.activeProduct
+            root_component = design.rootComponent
+
+            construction_plane = None
+            if plane == "xy":
+                construction_plane = root_component.xYConstructionPlane
+            elif plane == "yz":
+                construction_plane = root_component.yZConstructionPlane
+            elif plane == "xz":
+                construction_plane = root_component.xZConstructionPlane
+
+            if construction_plane is None:
+                raise ValueError(f"Invalid plane '{plane}'. Use 'xy', 'yz', or 'xz'.")
+
+            # Create a circle in the sketch
+            circle = create_sketch_circle(
+                component=root_component,
+                plane=construction_plane,
+                coords=adsk.core.Point3D.create(*coords),
+                radius=radius,
+            )
+
+            if circle is None:
+                raise RuntimeError("Failed to create sketch circle")
+
+            return RpcResponse(
+                success=True,
+                message=[
+                    "Sketch circle created successfully",
+                    "name: {}".format(circle.name),
+                ],
+            ).to_dict()
+
+        except Exception as e:
+            app.log(f"Error in create_sketch_circle RPC method: {str(e)}")
+            return RpcResponse(success=False, message=str(e)).to_dict()
 
 
 class FusionRPCServer:
@@ -61,7 +127,10 @@ class FusionRPCServer:
             self.server.register_function(rpc_methods.ping, "ping")
 
             self.server.register_function(
-                rpc_methods.create_cylinder, "create_cylinder"
+                rpc_methods.extrude_profile, "extrude_profile"
+            )
+            self.server.register_function(
+                rpc_methods.create_sketch_circle, "create_sketch_circle"
             )
 
             # Start the server in a separate thread

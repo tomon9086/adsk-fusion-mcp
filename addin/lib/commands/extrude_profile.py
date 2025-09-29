@@ -3,7 +3,7 @@ import adsk.fusion
 
 
 def extrude_profile(
-    component: adsk.fusion.Component, sketch: adsk.fusion.Sketch, height: float
+    component: adsk.fusion.Component, sketch: adsk.fusion.Sketch, distance: float
 ) -> bool:
     """
     Extrude a sketch profile to create a solid
@@ -11,7 +11,7 @@ def extrude_profile(
     Args:
         component (adsk.fusion.Component): Target component to extrude in
         sketch (adsk.fusion.Sketch): The sketch to extrude
-        height (float): Height of the extrusion
+        distance (float): Distance of the extrusion
 
     Returns:
         bool: True if extrusion is successful, False if it fails
@@ -27,7 +27,7 @@ def extrude_profile(
             circle_base_prof, adsk.fusion.FeatureOperations.NewBodyFeatureOperation
         )
 
-        extrusion_distance = adsk.core.ValueInput.createByReal(height)
+        extrusion_distance = adsk.core.ValueInput.createByReal(distance)
         extrude_input.setDistanceExtent(False, extrusion_distance)
         extrudes.add(extrude_input)
 

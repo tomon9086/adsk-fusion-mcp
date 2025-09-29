@@ -3,6 +3,8 @@ import xmlrpc.client
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import TextContent
 
+from .types import RpcResponse
+
 mcp = FastMCP(
     "FusionMCP",
     instructions="Support Free AI Generative Design with MCP",
@@ -18,14 +20,18 @@ class FusionRPCClient:
         )
 
     def ping(self) -> TextContent:
-        result = self.server.ping()
-        return TextContent(type="text", text="success" if result else "failed")
+        result = RpcResponse.of(self.server.ping())
+        return TextContent(type="text", text=result.message)
 
-    def create_cylinder(
-        self, x: float, y: float, z: float, radius: float, height: float
+    def extrude_profile(self, sketch_name: str, distance: float) -> TextContent:
+        result = RpcResponse.of(self.server.extrude_profile(sketch_name, distance))
+        return TextContent(type="text", text=result.message)
+
+    def create_sketch_circle(
+        self, plane: str, coords: list[float], radius: float
     ) -> TextContent:
-        result = self.server.create_cylinder(x, y, z, radius, height)
-        return TextContent(type="text", text="success" if result else "failed")
+        result = RpcResponse.of(self.server.create_sketch_circle(plane, coords, radius))
+        return TextContent(type="text", text=result.message)
 
 
 @mcp.tool()
@@ -45,27 +51,39 @@ def ping(ctx: Context) -> list[TextContent]:
 
 
 @mcp.tool()
-def create_cylinder(
-    ctx: Context,
-    x: float,
-    y: float,
-    z: float,
-    radius: float,
-    height: float,
+def extrude_profile(
+    ctx: Context, sketch_name: str, distance: float
 ) -> list[TextContent]:
-    """Create a cylinder in Fusion.
+    """Extrude a profile in Fusion.
 
     Args:
-        x: X coordinate of the cylinder center
-        y: Y coordinate of the cylinder center
-        z: Z coordinate of the cylinder center
-        radius: Radius of the cylinder
-        height: Height of the cylinder
+        sketch_name: Name of the sketch to extrude
+        distance: Distance to extrude
+
     Returns:
         Result message
     """
     client = FusionRPCClient()
-    result = client.create_cylinder(x, y, z, radius, height)
+    result = client.extrude_profile(sketch_name, distance)
+    return [result]
+
+
+@mcp.tool()
+def create_sketch_circle(
+    ctx: Context, plane: str, coords: list[float], radius: float
+) -> list[TextContent]:
+    """Create a sketch circle in Fusion.
+
+    Args:
+        plane: Construction plane to use ('xy', 'yz', 'xz')
+        coords: Center point of the circle
+        radius: Radius of the circle
+
+    Returns:
+        Result message
+    """
+    client = FusionRPCClient()
+    result = client.create_sketch_circle(plane, coords, radius)
     return [result]
 
 

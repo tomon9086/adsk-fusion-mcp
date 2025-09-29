@@ -6,7 +6,7 @@ from .sketch import create_sketch
 
 def create_sketch_circle(
     component: adsk.fusion.Component,
-    plane: adsk.core.Plane,
+    plane: adsk.fusion.ConstructionPlane,
     coords: adsk.core.Point3D,
     radius: float,
 ) -> adsk.fusion.Sketch:
@@ -15,6 +15,7 @@ def create_sketch_circle(
 
     Args:
         component (adsk.fusion.Component): Target component to create the sketch in
+        plane (adsk.fusion.ConstructionPlane): Construction plane to create the sketch on
         coords (adsk.core.Point3D): Center coordinates of the circle
         radius (float): Radius of the circle
 
