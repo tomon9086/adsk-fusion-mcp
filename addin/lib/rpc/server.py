@@ -24,8 +24,10 @@ class FusionRPCMethods:
         """Create a cylinder"""
         try:
             app = adsk.core.Application.get()
+            design = app.activeProduct
+            root_component = design.rootComponent
             point = adsk.core.Point3D.create(x, y, z)
-            success = create_cylinder(app, point, radius, height)
+            success = create_cylinder(root_component, point, radius, height)
             return success
         except Exception as e:
             print(f"Error in create_cylinder RPC method: {str(e)}")
