@@ -40,7 +40,11 @@ def run(context):
         rpc_server = FusionRPCServer()
         rpc_server.start()
 
-        ui.messageBox("Started Fusion MCP\nRPC Server is running on port 9875")
+        app.log(
+            "Started Fusion MCP\nRPC Server is running on port {}".format(
+                rpc_server.port
+            )
+        )
 
     except:
         if ui:
@@ -55,9 +59,9 @@ def stop(context):
         if rpc_server:
             rpc_server.stop()
             rpc_server = None
-            ui.messageBox("Stopped Fusion MCP")
+            app.log("Stopped Fusion MCP")
         else:
-            ui.messageBox("RPC Server is already stopped")
+            app.log("RPC Server is already stopped")
 
     except:
         if ui:
