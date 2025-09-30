@@ -33,6 +33,14 @@ class FusionRPCClient:
         result = RpcResponse.of(self.server.create_sketch_circle(plane, coords, radius))
         return TextContent(type="text", text=result.message)
 
+    def create_sketch_rectangle(
+        self, plane: str, point_one: list[float], point_two: list[float]
+    ) -> TextContent:
+        result = RpcResponse.of(
+            self.server.create_sketch_rectangle(plane, point_one, point_two)
+        )
+        return TextContent(type="text", text=result.message)
+
 
 @mcp.tool()
 def ping(ctx: Context) -> list[TextContent]:
@@ -84,6 +92,25 @@ def create_sketch_circle(
     """
     client = FusionRPCClient()
     result = client.create_sketch_circle(plane, coords, radius)
+    return [result]
+
+
+@mcp.tool()
+def create_sketch_rectangle(
+    ctx: Context, plane: str, point_one: list[float], point_two: list[float]
+) -> list[TextContent]:
+    """Create a sketch rectangle in Fusion.
+
+    Args:
+        plane: Construction plane to use ('xy', 'yz', 'xz')
+        point_one: First corner point of the rectangle; (x, y)
+        point_two: Opposite corner point of the rectangle; (x, y)
+
+    Returns:
+        Result message
+    """
+    client = FusionRPCClient()
+    result = client.create_sketch_rectangle(plane, point_one, point_two)
     return [result]
 
 

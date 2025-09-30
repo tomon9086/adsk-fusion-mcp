@@ -15,6 +15,7 @@ sys.path.insert(0, lib_path)
 
 from lib.commands.extrude_profile import extrude_profile
 from lib.commands.sketch_circle import create_sketch_circle
+from lib.commands.sketch_rectangle import create_sketch_rectangle
 
 
 def get_root_component(app: adsk.core.Application) -> adsk.fusion.Component:
@@ -23,6 +24,20 @@ def get_root_component(app: adsk.core.Application) -> adsk.fusion.Component:
         raise RuntimeError("No active Fusion design")
 
     return design.rootComponent
+
+
+def get_plane_by_name(
+    component: adsk.fusion.Component, name: str
+) -> adsk.fusion.ConstructionPlane:
+    name = name.lower()
+    if name == "xy":
+        return component.xYConstructionPlane
+    elif name == "yz":
+        return component.yZConstructionPlane
+    elif name == "xz":
+        return component.xZConstructionPlane
+    else:
+        raise ValueError(f"Invalid plane name: {name}")
 
 
 class FusionRPCMethods:
@@ -70,17 +85,7 @@ class FusionRPCMethods:
         try:
             app = adsk.core.Application.get()
             root_component = get_root_component(app)
-
-            construction_plane = None
-            if plane == "xy":
-                construction_plane = root_component.xYConstructionPlane
-            elif plane == "yz":
-                construction_plane = root_component.yZConstructionPlane
-            elif plane == "xz":
-                construction_plane = root_component.xZConstructionPlane
-
-            if construction_plane is None:
-                raise ValueError(f"Invalid plane '{plane}'. Use 'xy', 'yz', or 'xz'.")
+            construction_plane = get_plane_by_name(root_component, plane)
 
             # Create a circle in the sketch
             circle = create_sketch_circle(
@@ -103,6 +108,35 @@ class FusionRPCMethods:
 
         except Exception as e:
             app.log(f"Error in create_sketch_circle RPC method: {str(e)}")
+            return RpcResponse(success=False, message=str(e)).to_dict()
+
+    def create_sketch_rectangle(
+        self, plane: str, point_one: list[float], point_two: list[float]
+    ) -> dict:
+        """Create a new sketch rectangle"""
+        try:
+            app = adsk.core.Application.get()
+            root_component = get_root_component(app)
+            construction_plane = get_plane_by_name(root_component, plane)
+
+            # Create a rectangle in the sketch
+            rectangle = create_sketch_rectangle(
+                component=root_component,
+                plane=construction_plane,
+                point_one=adsk.core.Point3D.create(*point_one),
+                point_two=adsk.core.Point3D.create(*point_two),
+            )
+
+            return RpcResponse(
+                success=True,
+                message=[
+                    "Sketch rectangle created successfully",
+                    "name: {}".format(rectangle.name),
+                ],
+            ).to_dict()
+
+        except Exception as e:
+            app.log(f"Error in create_sketch_rectangle RPC method: {str(e)}")
             return RpcResponse(success=False, message=str(e)).to_dict()
 
 
@@ -137,6 +171,9 @@ class FusionRPCServer:
             )
             self.server.register_function(
                 rpc_methods.create_sketch_circle, "create_sketch_circle"
+            )
+            self.server.register_function(
+                rpc_methods.create_sketch_rectangle, "create_sketch_rectangle"
             )
 
             # Start the server in a separate thread
