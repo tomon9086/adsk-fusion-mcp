@@ -14,7 +14,6 @@ lib_path = os.path.join(root_path, "addin/lib")
 sys.path.insert(0, lib_path)
 
 from lib.commands.extrude_profile import extrude_profile
-from lib.commands.sketch import create_sketch
 from lib.commands.sketch_circle import create_sketch_circle
 
 
