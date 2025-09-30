@@ -1,5 +1,6 @@
 import adsk.core
 import adsk.fusion
+from lib.utils.uuid import generate_uuid
 
 from .sketch import create_sketch
 
@@ -22,13 +23,8 @@ def create_sketch_circle(
     Returns:
         adsk.fusion.SketchCircle: The created sketch circle object
     """
-    sketches = component.sketches
-    sketch_name = "sketch_circle_" + str(len(sketches))
-
     # Create sketch using base function
-    sketch = create_sketch(component, plane, sketch_name)
-    if sketch is None:
-        return None
+    sketch = create_sketch(component, plane)
 
     # Display the sketch
     sketch.isLightBulbOn = True

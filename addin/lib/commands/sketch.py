@@ -1,9 +1,11 @@
 import adsk.core
 import adsk.fusion
+from lib.utils.uuid import generate_uuid
 
 
 def create_sketch(
-    component: adsk.fusion.Component, plane: adsk.core.Plane, sketch_name: str
+    component: adsk.fusion.Component,
+    plane: adsk.core.Plane,
 ) -> adsk.fusion.Sketch:
     """
     Create a new sketch on the specified plane with the given name.
@@ -19,8 +21,13 @@ def create_sketch(
     try:
         sketches = component.sketches
         sketch = sketches.add(plane)
-        sketch.name = sketch_name
+        if not isinstance(sketch, adsk.fusion.Sketch):
+            raise RuntimeError("Failed to create sketch")
+
+        sketch.name = generate_uuid()
+
         return sketch
+
     except Exception as e:
         print(f"Error creating sketch: {e}")
         return None
