@@ -4,6 +4,7 @@ import threading
 from xmlrpc.server import SimpleXMLRPCServer
 
 import adsk.core
+import adsk.fusion
 
 from .types import RpcResponse
 
@@ -15,6 +16,14 @@ sys.path.insert(0, lib_path)
 from lib.commands.extrude_profile import extrude_profile
 from lib.commands.sketch import create_sketch
 from lib.commands.sketch_circle import create_sketch_circle
+
+
+def get_root_component(app: adsk.core.Application) -> adsk.fusion.Component:
+    design = app.activeProduct
+    if not isinstance(design, adsk.fusion.Design):
+        raise RuntimeError("No active Fusion design")
+
+    return design.rootComponent
 
 
 class FusionRPCMethods:
@@ -29,8 +38,7 @@ class FusionRPCMethods:
         """Extrude a profile"""
         try:
             app = adsk.core.Application.get()
-            design = app.activeProduct
-            root_component = design.rootComponent
+            root_component = get_root_component(app)
 
             # Find the sketch by name
             sketches = root_component.sketches
@@ -62,8 +70,7 @@ class FusionRPCMethods:
         """Create a new sketch circle"""
         try:
             app = adsk.core.Application.get()
-            design = app.activeProduct
-            root_component = design.rootComponent
+            root_component = get_root_component(app)
 
             construction_plane = None
             if plane == "xy":
