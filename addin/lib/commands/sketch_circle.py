@@ -9,7 +9,7 @@ def create_sketch_circle(
     plane: adsk.fusion.ConstructionPlane,
     coords: adsk.core.Point3D,
     radius: float,
-) -> adsk.fusion.Sketch:
+) -> adsk.fusion.SketchCircle:
     """
     Create a circular sketch on the XY plane
 
@@ -20,7 +20,7 @@ def create_sketch_circle(
         radius (float): Radius of the circle
 
     Returns:
-        adsk.fusion.Sketch: The created sketch object
+        adsk.fusion.SketchCircle: The created sketch circle object
     """
     sketches = component.sketches
     sketch_name = "sketch_circle_" + str(len(sketches))
@@ -34,6 +34,6 @@ def create_sketch_circle(
     sketch.isLightBulbOn = True
 
     # Draw a circle
-    sketch.sketchCurves.sketchCircles.addByCenterRadius(coords, radius)
+    circle = sketch.sketchCurves.sketchCircles.addByCenterRadius(coords, radius)
 
-    return sketch
+    return circle

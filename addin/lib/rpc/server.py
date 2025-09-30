@@ -91,7 +91,7 @@ class FusionRPCMethods:
                 success=True,
                 message=[
                     "Sketch circle created successfully",
-                    "name: {}".format(circle.name),
+                    "name: {}".format(circle.parentSketch.name),
                 ],
             ).to_dict()
 

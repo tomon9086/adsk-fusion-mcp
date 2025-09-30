@@ -4,7 +4,7 @@ import adsk.fusion
 
 def create_sketch(
     component: adsk.fusion.Component, plane: adsk.core.Plane, sketch_name: str
-):
+) -> adsk.fusion.Sketch:
     """
     Create a new sketch on the specified plane with the given name.
 
